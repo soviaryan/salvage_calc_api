@@ -10,7 +10,7 @@ class CarData(BaseModel):
     auction_price: float
     damage_type: str
 
-# Placeholder repair costs (adjust these later if needed)
+# Define repair costs based on damage type
 REPAIR_COSTS = {
     "Front-End Damage": 5000,
     "Rear-End Damage": 4000,
@@ -25,17 +25,17 @@ def home():
 
 @app.post("/calculate")
 def calculate_profit(car: CarData):
-    repair_cost = REPAIR_COSTS.get(car.damage_type, 6000)  # Default cost if damage type isn't listed
-    auction_fees = car.auction_price * 0.10  # Assume 10% auction fees
-    transport_cost = 1000  # Fixed transport cost (adjust if needed)
+    repair_cost = REPAIR_COSTS.get(car.damage_type, 6000)  # Default repair cost
+    auction_fees = car.auction_price * 0.10  # 10% auction fees
+    transport_cost = 1000  # Estimated transport cost
     total_investment = car.auction_price + repair_cost + auction_fees + transport_cost
 
-    # Estimating rebuilt value
+    # Estimated rebuilt value
     rebuilt_value = car.auction_price * 1.8 if "Frame" not in car.damage_type else car.auction_price * 1.5
 
     # Profit calculations
     profit_best_case = rebuilt_value - total_investment
-    profit_worst_case = (rebuilt_value * 0.85) - total_investment  # Worst case: resale at 85% of rebuilt value
+    profit_worst_case = (rebuilt_value * 0.85) - total_investment  # If sold at 85% of expected value
 
     return {
         "repair_cost": repair_cost,
@@ -46,3 +46,4 @@ def calculate_profit(car: CarData):
         "profit_best_case": profit_best_case,
         "profit_worst_case": profit_worst_case
     }
+}
