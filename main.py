@@ -32,7 +32,7 @@ REPAIR_COSTS = {
 def home():
     return {"message": "Salvage Car Profit Calculator API is live!"}
 
-@app.post("/calculate")
+@app.post("/calculate")  # ✅ This ensures it only accepts POST requests
 def calculate_profit(car: CarData):
     repair_cost = REPAIR_COSTS.get(car.damage_type, 6000)
     auction_fees = car.auction_price * 0.10
