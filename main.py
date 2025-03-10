@@ -3,6 +3,15 @@ from pydantic import BaseModel
 
 app = FastAPI()
 
+# ✅ Allow requests from your website
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://pitstop-usa.com"],  # ✅ Add your actual website URL
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 class CarData(BaseModel):
     year: int
     make: str
