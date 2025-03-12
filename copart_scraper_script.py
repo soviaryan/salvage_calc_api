@@ -1,95 +1,70 @@
+import time
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By import time
+from selenium.webdriver.common.by import By
 from webdriver_manager.chrome import ChromeDriverManager
 
-service = Service(ChromeDriverManager().install())
-
-def get_chrome_driver():
-    chrome_options = Options()
-    chrome_options.add_argument("--headless")  # Run in headless mode (no UI)
-    chrome_options.add_argument("--no-sandbox")  # Bypass OS security model
-    chrome_options.add_argument("--disable-dev-shm-usage")  # Overcome limited resource issues
-
-    service = Service(ChromeDriverManager().install())
-    driver = webdriver.Chrome(service=service, options=chrome_options)
-    return driver
-
 def fetch_vehicle_info(lot_number):
+    """
+    Fetches vehicle details from Copart using Selenium and Chrome in headless mode.
+    
+    Args:
+        lot_number (str): The Copart lot number to search for.
+    
+    Returns:
+        dict: Extracted vehicle details or an error message if the process fails.
+    """
     url = f"https://www.copart.com/lot/{lot_number}"
-    print(f"🔄 Fetching: {url}")
 
-    # Set up Chrome options for headless mode (faster)
-    chrome_options = Options()
-    chrome_options.add_argument("--headless")
-    chrome_options.add_argument("--disable-gpu")
-    chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--disable-dev-shm-usage")
+    # Configure Chrome to run in headless mode on a server (Render)
+    chrome_options = webdriver.ChromeOptions()
+    chrome_options.add_argument("--headless")  # No UI
+    chrome_options.add_argument("--no-sandbox")  # Required for running in containers
+    chrome_options.add_argument("--disable-dev-shm-usage")  # Prevent memory issues
+    chrome_options.add_argument("--disable-gpu")  # Disable GPU hardware acceleration
+    chrome_options.add_argument("--remote-debugging-port=9222")  # Enable debugging
 
-    # Set up WebDriver
-    service = Service("chromedriver.exe")  # Ensure chromedriver.exe is in the same folder
+    # Start WebDriver with Chrome
+    service = Service(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=chrome_options)
 
     try:
+        print(f"🔄 Fetching: {url}")
         driver.get(url)
-        time.sleep(5)  # Wait for page to load
-
-        # Extract data from Copart page
-        vehicle_data = {
-            "Lot Number": lot_number,
-            "VIN": "Not Found",
-            "Title": "Not Found",
-            "Odometer": "Not Found",
-            "Primary Damage": "Not Found",
-            "Estimated Retail Value": "Not Found",
-            "Cylinders": "Not Found",
-            "Color": "Not Found",
-            "Engine Type": "Not Found",
-            "Transmission": "Not Found",
-            "Drive": "Not Found",
-            "Vehicle Type": "Not Found",
-            "Fuel": "Not Found",
-            "Keys Available": "Not Found"
-        }
+        time.sleep(3)  # Wait for page to load
 
         # Extract vehicle details
-        span_elements = driver.find_elements(By.CLASS_NAME, "lot-details-desc")
+        span_elements = driver.find_elements(By.TAG_NAME, "span")
+        span_texts = [elem.text.strip() for elem in span_elements if elem.text.strip()]
 
-        if span_elements:
-            extracted_values = [span.text.strip() for span in span_elements if span.text.strip()]
-            print(f"🔍 DEBUG: Found span elements:\n{extracted_values}")
+        if len(span_texts) < 15:
+            print("❌ Failed to extract vehicle data.")
+            return {"detail": "Not Found"}
 
-            # Map extracted values to vehicle data fields
-            if len(extracted_values) >= 14:
-                vehicle_data.update({
-                    "VIN": extracted_values[1],
-                    "Title": extracted_values[2],
-                    "Odometer": extracted_values[3],
-                    "Primary Damage": extracted_values[4],
-                    "Estimated Retail Value": extracted_values[5],
-                    "Cylinders": extracted_values[6],
-                    "Color": extracted_values[7],
-                    "Engine Type": extracted_values[8],
-                    "Transmission": extracted_values[9],
-                    "Drive": extracted_values[10],
-                    "Vehicle Type": extracted_values[11],
-                    "Fuel": extracted_values[12],
-                    "Keys Available": extracted_values[13]
-                })
+        vehicle_data = {
+            "Lot Number": span_texts[0],
+            "VIN": span_texts[1],
+            "Title": span_texts[2],
+            "Odometer": span_texts[3],
+            "Primary Damage": span_texts[4],
+            "Estimated Retail Value": span_texts[5],
+            "Cylinders": span_texts[6],
+            "Color": span_texts[7],
+            "Engine Type": span_texts[8],
+            "Transmission": span_texts[9],
+            "Drive": span_texts[10],
+            "Vehicle Type": span_texts[11],
+            "Fuel": span_texts[12],
+            "Keys Available": span_texts[13]
+        }
 
         print(f"✅ Extracted Data: {vehicle_data}")
         return vehicle_data
 
     except Exception as e:
-        print(f"❌ Error: {e}")
-        return {"error": "Failed to fetch vehicle info"}
+        print(f"❌ Error occurred: {e}")
+        return {"detail": "Scraper Failed", "error": str(e)}
 
     finally:
-        driver.quit()
-
-# Run this script directly to test scraping a specific lot number
-if __name__ == "__main__":
-    test_lot = "41344685"
-    fetch_vehicle_info(test_lot)
+        driver.quit()  # Ensure the driver is closed properly
 
