@@ -21,6 +21,9 @@ set -o errexit
 echo "Installing dependencies..."
 apt-get update && apt-get install -y wget unzip
 
+apt-get update && apt-get install -y chromium
+pip install -r requirements.txt
+
 echo "Installing Google Chrome..."
 wget -q -O /tmp/chrome.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
 dpkg -i /tmp/chrome.deb || apt-get -fy install
