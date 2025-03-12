@@ -1,70 +1,92 @@
-import time
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.common.by import By
 from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+import time
 
 def fetch_vehicle_info(lot_number):
     """
-    Fetches vehicle details from Copart using Selenium and Chrome in headless mode.
-    
-    Args:
-        lot_number (str): The Copart lot number to search for.
-    
-    Returns:
-        dict: Extracted vehicle details or an error message if the process fails.
+    Scrapes Copart for vehicle information using the given lot number.
+    Returns a dictionary with vehicle details.
     """
-    url = f"https://www.copart.com/lot/{lot_number}"
+    options = Options()
+    options.add_argument("--headless")  # Run without UI
+    options.add_argument("--no-sandbox")  # Bypass OS security model
+    options.add_argument("--disable-dev-shm-usage")  # Overcome limited resources
+    options.binary_location = "/usr/bin/google-chrome"  # Ensure it finds Chrome
 
-    # Configure Chrome to run in headless mode on a server (Render)
-    chrome_options = webdriver.ChromeOptions()
-    chrome_options.add_argument("--headless")  # No UI
-    chrome_options.add_argument("--no-sandbox")  # Required for running in containers
-    chrome_options.add_argument("--disable-dev-shm-usage")  # Prevent memory issues
-    chrome_options.add_argument("--disable-gpu")  # Disable GPU hardware acceleration
-    chrome_options.add_argument("--remote-debugging-port=9222")  # Enable debugging
-
-    # Start WebDriver with Chrome
+    # Set up Chrome WebDriver
     service = Service(ChromeDriverManager().install())
-    driver = webdriver.Chrome(service=service, options=chrome_options)
+    driver = webdriver.Chrome(service=service, options=options)
 
     try:
-        print(f"🔄 Fetching: {url}")
+        url = f"https://www.copart.com/lot/{lot_number}"
         driver.get(url)
-        time.sleep(3)  # Wait for page to load
 
-        # Extract vehicle details
-        span_elements = driver.find_elements(By.TAG_NAME, "span")
-        span_texts = [elem.text.strip() for elem in span_elements if elem.text.strip()]
+        # Allow page to load
+        time.sleep(3)
 
-        if len(span_texts) < 15:
-            print("❌ Failed to extract vehicle data.")
-            return {"detail": "Not Found"}
+        # Extract key details from Copart's page
+        vehicle_data = {}
+        vehicle_data["Lot Number"] = lot_number
 
-        vehicle_data = {
-            "Lot Number": span_texts[0],
-            "VIN": span_texts[1],
-            "Title": span_texts[2],
-            "Odometer": span_texts[3],
-            "Primary Damage": span_texts[4],
-            "Estimated Retail Value": span_texts[5],
-            "Cylinders": span_texts[6],
-            "Color": span_texts[7],
-            "Engine Type": span_texts[8],
-            "Transmission": span_texts[9],
-            "Drive": span_texts[10],
-            "Vehicle Type": span_texts[11],
-            "Fuel": span_texts[12],
-            "Keys Available": span_texts[13]
-        }
+        try:
+            vehicle_data["Title"] = driver.find_element(By.XPATH, "//span[contains(text(), 'Title')]/following-sibling::span").text
+        except:
+            vehicle_data["Title"] = "N/A"
 
-        print(f"✅ Extracted Data: {vehicle_data}")
+        try:
+            vehicle_data["Odometer"] = driver.find_element(By.XPATH, "//span[contains(text(), 'Odometer')]/following-sibling::span").text
+        except:
+            vehicle_data["Odometer"] = "N/A"
+
+        try:
+            vehicle_data["Primary Damage"] = driver.find_element(By.XPATH, "//span[contains(text(), 'Primary Damage')]/following-sibling::span").text
+        except:
+            vehicle_data["Primary Damage"] = "N/A"
+
+        try:
+            vehicle_data["Estimated Retail Value"] = driver.find_element(By.XPATH, "//span[contains(text(), 'Estimated Retail Value')]/following-sibling::span").text
+        except:
+            vehicle_data["Estimated Retail Value"] = "N/A"
+
+        try:
+            vehicle_data["Engine Type"] = driver.find_element(By.XPATH, "//span[contains(text(), 'Engine Type')]/following-sibling::span").text
+        except:
+            vehicle_data["Engine Type"] = "N/A"
+
+        try:
+            vehicle_data["Transmission"] = driver.find_element(By.XPATH, "//span[contains(text(), 'Transmission')]/following-sibling::span").text
+        except:
+            vehicle_data["Transmission"] = "N/A"
+
+        try:
+            vehicle_data["Drive"] = driver.find_element(By.XPATH, "//span[contains(text(), 'Drive')]/following-sibling::span").text
+        except:
+            vehicle_data["Drive"] = "N/A"
+
+        try:
+            vehicle_data["Fuel"] = driver.find_element(By.XPATH, "//span[contains(text(), 'Fuel')]/following-sibling::span").text
+        except:
+            vehicle_data["Fuel"] = "N/A"
+
+        try:
+            vehicle_data["Color"] = driver.find_element(By.XPATH, "//span[contains(text(), 'Color')]/following-sibling::span").text
+        except:
+            vehicle_data["Color"] = "N/A"
+
+        try:
+            vehicle_data["Keys Available"] = driver.find_element(By.XPATH, "//span[contains(text(), 'Keys Available')]/following-sibling::span").text
+        except:
+            vehicle_data["Keys Available"] = "N/A"
+
         return vehicle_data
 
     except Exception as e:
-        print(f"❌ Error occurred: {e}")
-        return {"detail": "Scraper Failed", "error": str(e)}
+        return {"error": str(e)}
 
     finally:
-        driver.quit()  # Ensure the driver is closed properly
+        driver.quit()
+
 
