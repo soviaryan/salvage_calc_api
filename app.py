@@ -1,11 +1,15 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from copart_scraper_script import fetch_vehicle_info  # Ensure correct import
+from copart_scraper_script import fetch_vehicle_info  # Make sure this exists
 
 app = Flask(__name__)
-CORS(app)  # Allows cross-origin requests
+CORS(app)  # Allow cross-origin requests
 
-@app.route("/fetch_vehicle", methods=["GET"])
+@app.route("/", methods=["GET"])  # Root route to check if API is live
+def home():
+    return jsonify({"message": "Salvage Car Profit Calculator API is live!"})
+
+@app.route("/fetch_vehicle", methods=["GET"])  # This must be correct!
 def fetch_vehicle():
     lot_number = request.args.get("lot")
     if not lot_number:
@@ -19,4 +23,3 @@ def fetch_vehicle():
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5000)
-
