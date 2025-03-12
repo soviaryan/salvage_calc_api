@@ -1,9 +1,9 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from copart_scraper_script import fetch_vehicle_info  # Make sure this file exists
+from copart_scraper_script import fetch_vehicle_info  # Ensure this exists
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all domains
+CORS(app)
 
 @app.route('/')
 def home():
@@ -23,5 +23,5 @@ def fetch_vehicle():
 
 if __name__ == "__main__":
     import os
-    port = int(os.environ.get("PORT", 5000))  # Use Render's assigned port or default to 5000
+    port = int(os.environ.get("PORT", 10000))  # Render uses port 10000
     app.run(host="0.0.0.0", port=port)
