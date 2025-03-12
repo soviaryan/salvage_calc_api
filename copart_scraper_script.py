@@ -4,6 +4,13 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 import time
 
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
+
+service = Service(ChromeDriverManager().install())
+driver = webdriver.Chrome(service=service)
+
 def fetch_vehicle_info(lot_number):
     url = f"https://www.copart.com/lot/{lot_number}"
     print(f"🔄 Fetching: {url}")
