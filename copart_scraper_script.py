@@ -1,15 +1,20 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
-import time
-
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By import time
 from webdriver_manager.chrome import ChromeDriverManager
 
 service = Service(ChromeDriverManager().install())
-driver = webdriver.Chrome(service=service)
+
+def get_chrome_driver():
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")  # Run in headless mode (no UI)
+    chrome_options.add_argument("--no-sandbox")  # Bypass OS security model
+    chrome_options.add_argument("--disable-dev-shm-usage")  # Overcome limited resource issues
+
+    service = Service(ChromeDriverManager().install())
+    driver = webdriver.Chrome(service=service, options=chrome_options)
+    return driver
 
 def fetch_vehicle_info(lot_number):
     url = f"https://www.copart.com/lot/{lot_number}"
