@@ -8,9 +8,16 @@ apt-get update && apt-get install -y wget curl unzip
 echo "Installing Google Chrome..."
 wget -q -O /tmp/chrome.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
 dpkg -i /tmp/chrome.deb || apt-get -fy install
+
+# Verify Chrome installation
+if ! command -v google-chrome &> /dev/null
+then
+    echo "Google Chrome installation failed!"
+    exit 1
+fi
 ln -sf /usr/bin/google-chrome-stable /usr/bin/google-chrome
 
-# Install ChromeDriver (Matching Chrome Version)
+# Install ChromeDriver (Ensure it matches Chrome)
 echo "Installing ChromeDriver..."
 CHROME_VERSION=$(google-chrome --version | awk '{print $3}' | cut -d '.' -f 1)
 CHROMEDRIVER_VERSION=$(curl -sS "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_VERSION")
@@ -18,11 +25,20 @@ wget -q -O /tmp/chromedriver.zip "https://chromedriver.storage.googleapis.com/${
 unzip /tmp/chromedriver.zip -d /usr/local/bin/
 chmod +x /usr/local/bin/chromedriver
 
+# Verify ChromeDriver installation
+if ! command -v chromedriver &> /dev/null
+then
+    echo "ChromeDriver installation failed!"
+    exit 1
+fi
+
 echo "Chrome and ChromeDriver installed successfully!"
 
 # Install Python dependencies
 echo "Installing Python dependencies..."
+pip install --upgrade pip
 pip install -r requirements.txt
 
 echo "Build completed successfully."
+
 

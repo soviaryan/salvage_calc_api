@@ -1,23 +1,33 @@
 from selenium import webdriver
-from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
-from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
 import time
+import os
 
 def fetch_vehicle_info(lot_number):
     chrome_options = Options()
     chrome_options.add_argument("--headless")
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
-    chrome_options.binary_location = "/usr/bin/google-chrome"
+    
+    # Explicitly set Chrome binary location
+    chrome_binary_path = "/usr/bin/google-chrome"
+    if not os.path.exists(chrome_binary_path):
+        return {"error": "Chrome binary not found!"}
+    chrome_options.binary_location = chrome_binary_path
 
-    # Manually specify ChromeDriver path
+    # Explicitly set ChromeDriver path
     chromedriver_path = "/usr/local/bin/chromedriver"
+    if not os.path.exists(chromedriver_path):
+        return {"error": "ChromeDriver binary not found!"}
     service = Service(chromedriver_path)
 
-    driver = webdriver.Chrome(service=service, options=chrome_options)
+    # Initialize WebDriver
+    try:
+        driver = webdriver.Chrome(service=service, options=chrome_options)
+    except Exception as e:
+        return {"error": f"WebDriver Initialization Failed: {str(e)}"}
 
     try:
         url = f"https://www.copart.com/lot/{lot_number}"
@@ -26,7 +36,6 @@ def fetch_vehicle_info(lot_number):
 
         vehicle_data = {"Lot Number": lot_number}
 
-        # Extract details
         try:
             vehicle_data["Title"] = driver.find_element(By.XPATH, "//span[contains(text(), 'Title')]/following-sibling::span").text
         except:
@@ -54,4 +63,5 @@ def fetch_vehicle_info(lot_number):
 
     finally:
         driver.quit()
+
 
