@@ -6,19 +6,16 @@ from selenium.webdriver.common.by import By
 import time
 
 def fetch_vehicle_info(lot_number):
-    """
-    Scrapes Copart for vehicle information using the given lot number.
-    Returns a dictionary with vehicle details.
-    """
-    options = Options()
-    options.add_argument("--headless")  # Run without UI
-    options.add_argument("--no-sandbox")  # Bypass OS security model
-    options.add_argument("--disable-dev-shm-usage")  # Overcome limited resources
-    options.binary_location = "/usr/bin/google-chrome"  # Ensure it finds Chrome
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")  # Runs Chrome in headless mode
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.binary_location = "/usr/bin/google-chrome"  # Ensures it finds Chrome
 
-    # Set up Chrome WebDriver
     service = Service(ChromeDriverManager().install())
-    driver = webdriver.Chrome(service=service, options=options)
+    driver = webdriver.Chrome(service=service, options=chrome_options)
+
+    # Your scraping logic here...
 
     try:
         url = f"https://www.copart.com/lot/{lot_number}"
