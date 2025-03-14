@@ -12,8 +12,9 @@ def fetch_vehicle_info(lot_number):
     chrome_options.add_argument("--disable-dev-shm-usage")
 
     # Manually set Chrome and ChromeDriver paths
-    chrome_binary_path = os.environ.get("CHROME_BIN", "/usr/bin/google-chrome")
-    chromedriver_path = os.environ.get("CHROMEDRIVER_BIN", "/usr/bin/chromedriver")
+chrome_binary_path = os.environ.get("GOOGLE_CHROME_BIN", "/usr/bin/google-chrome")
+chromedriver_path = os.environ.get("CHROMEDRIVER_PATH", "/usr/local/bin/chromedriver")
+
 
     # Ensure paths are correct
     if not os.path.exists(chrome_binary_path):
@@ -21,9 +22,9 @@ def fetch_vehicle_info(lot_number):
     if not os.path.exists(chromedriver_path):
         return {"error": "ChromeDriver binary not found!"}
 
-    chrome_options.binary_location = chrome_binary_path
-    service = Service(chromedriver_path)
-    driver = webdriver.Chrome(service=service, options=chrome_options)
+chrome_options.binary_location = chrome_binary_path
+service = Service(chromedriver_path)
+driver = webdriver.Chrome(service=service, options=chrome_options)
 
     try:
         url = f"https://www.copart.com/lot/{lot_number}"
