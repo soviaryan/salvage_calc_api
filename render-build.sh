@@ -1,47 +1,37 @@
 #!/bin/bash
-set -o errexit  # Exit script on error
+set -e  # Stop the script if any command fails
 
-echo "Updating system and installing dependencies..."
-apt-get update && apt-get install -y wget curl unzip
+echo "Updating package lists..."
+apt-get update
 
-# Install Google Chrome
+echo "Installing required packages..."
+apt-get install -y wget curl unzip gnupg 
+
+echo "Adding Google Chrome's signing key..."
+wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add -
+
+echo "Adding Google Chrome repository..."
+echo 'deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main' | tee /etc/apt/sources.list.d/google-chrome.list
+
 echo "Installing Google Chrome..."
-wget -q -O /tmp/chrome.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-dpkg -i /tmp/chrome.deb || apt-get -fy install
+apt-get update && apt-get install -y google-chrome-stable
 
-# Ensure Chrome is correctly linked
-ln -sf /usr/bin/google-chrome-stable /usr/bin/google-chrome
-export CHROME_PATH="/usr/bin/google-chrome"
+echo "Verifying Chrome installation..."
+google-chrome --version || echo "Chrome installation failed!"
 
-# Install ChromeDriver (Ensure it matches Chrome)
 echo "Installing ChromeDriver..."
-CHROME_VERSION=$(google-chrome --version | awk '{print $3}' | cut -d '.' -f 1)
-CHROMEDRIVER_VERSION=$(curl -sS "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_VERSION")
-wget -q -O /tmp/chromedriver.zip "https://chromedriver.storage.googleapis.com/${CHROMEDRIVER_VERSION}/chromedriver_linux64.zip"
-unzip /tmp/chromedriver.zip -d /usr/local/bin/
+CHROMEDRIVER_VERSION=$(curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE)
+wget -N https://chromedriver.storage.googleapis.com/${CHROMEDRIVER_VERSION}/chromedriver_linux64.zip -P /tmp/
+unzip /tmp/chromedriver_linux64.zip -d /tmp/
+mv /tmp/chromedriver /usr/local/bin/
 chmod +x /usr/local/bin/chromedriver
-export CHROMEDRIVER_PATH="/usr/local/bin/chromedriver"
 
-# Verify installations
-if ! command -v google-chrome &> /dev/null
-then
-    echo "Google Chrome installation failed!"
-    exit 1
-fi
+echo "Chrome and ChromeDriver installed successfully!"
 
-if ! command -v chromedriver &> /dev/null
-then
-    echo "ChromeDriver installation failed!"
-    exit 1
-fi
-
-echo "✅ Chrome and ChromeDriver installed successfully!"
-
-# Install Python dependencies
 echo "Installing Python dependencies..."
-pip install --upgrade pip
 pip install -r requirements.txt
 
-echo "✅ Build completed successfully."
+echo "Build script execution completed."
+
 
 
