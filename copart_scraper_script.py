@@ -52,3 +52,4 @@ def fetch_vehicle_info(lot_number):
 
 
 
+
