@@ -1,11 +1,11 @@
 #!/bin/bash
-set -e  # Stop the script if any command fails
+set -e  # Exit immediately if a command exits with a non-zero status
 
 echo "Updating package lists..."
 apt-get update
 
-echo "Installing required packages..."
-apt-get install -y wget curl unzip gnupg 
+echo "Installing required dependencies..."
+apt-get install -y wget curl unzip gnupg software-properties-common
 
 echo "Adding Google Chrome's signing key..."
 wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add -
@@ -16,8 +16,12 @@ echo 'deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main' | tee
 echo "Installing Google Chrome..."
 apt-get update && apt-get install -y google-chrome-stable
 
-echo "Verifying Chrome installation..."
-google-chrome --version || echo "Chrome installation failed!"
+# Verify Chrome installation
+if ! command -v google-chrome &> /dev/null
+then
+    echo "Chrome installation failed!"
+    exit 1
+fi
 
 echo "Installing ChromeDriver..."
 CHROMEDRIVER_VERSION=$(curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE)
@@ -26,9 +30,17 @@ unzip /tmp/chromedriver_linux64.zip -d /tmp/
 mv /tmp/chromedriver /usr/local/bin/
 chmod +x /usr/local/bin/chromedriver
 
+# Verify ChromeDriver installation
+if ! command -v chromedriver &> /dev/null
+then
+    echo "ChromeDriver installation failed!"
+    exit 1
+fi
+
 echo "Chrome and ChromeDriver installed successfully!"
 
 echo "Installing Python dependencies..."
+pip install --upgrade pip
 pip install -r requirements.txt
 
 echo "Build script execution completed."
